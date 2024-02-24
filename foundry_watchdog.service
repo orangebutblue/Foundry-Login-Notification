@@ -1,0 +1,13 @@
+[Unit]
+Description=Foundry Watchdog Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /PATH/TO/foundry_watchdog.py
+WorkingDirectory=PATH/TO/SCRIPT/
+User=USERNAME
+Group=GROUPNAME
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

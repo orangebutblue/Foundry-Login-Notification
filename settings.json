@@ -1,0 +1,6 @@
+{
+  "log_path": "/path/to/foundrydata/Logs/",
+  "log_filename": "debug.log",
+  "chat_id": "123456",
+  "bot_token": "123:XYZ"
+}
