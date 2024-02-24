@@ -1,4 +1,4 @@
-# Foundry Watchdog
+# Foundry Login Notification
 
 This is a simple watchdog for Foundry VTT. It will monitor the Foundry VTT log file and send a Telegram notification if a user logs in.
 
