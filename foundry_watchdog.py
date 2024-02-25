@@ -1,8 +1,35 @@
-import time
 import json
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+import time
+
 import requests
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
+notification_message = "User logged in: "
+settings_filename = "settings.json"
+
+
+def send_discord_notification(user):
+    text = notification_message + user
+    data = {
+        "content": text
+    }
+    response = requests.post(webhook_url, data=json.dumps(data), headers={"Content-Type": "application/json"})
+    return response.json()
+
+
+def send_telegram_notification(user):
+    text = notification_message + user
+    send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&parse_mode=Markdown&text={text}'
+    response = requests.get(send_text)
+    return response.json()
+
+
+def send_notification(user):
+    if notification_service == 'telegram':
+        send_telegram_notification(user)
+    elif notification_service == 'discord':
+        send_discord_notification(user)
 
 
 class LogFileHandler(FileSystemEventHandler):
@@ -33,22 +60,22 @@ class LogFileHandler(FileSystemEventHandler):
                 if "User authentication successful for user" in message:
                     user = message.split("User authentication successful for user")[-1].strip()
                     print(f"User authentication successful for user: {user}")
-                    self.send_notification(user)
-
-    def send_notification(self, user):
-        text = f"User authentication successful for user: {user}"
-        send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&parse_mode=Markdown&text={text}'
-        response = requests.get(send_text)
-        return response.json()
+                    send_notification(user)
 
 
 if __name__ == "__main__":
-    with open('settings.json', 'r') as f:
+    with open(settings_filename, 'r') as f:
         settings = json.load(f)
     log_path = settings['log_path']
     log_filename = settings['log_filename']
-    bot_token = settings['bot_token']
-    chat_id = settings['chat_id']
+    notification_service = settings['notification_service']
+    if notification_service == 'telegram':
+        bot_token = settings['telegram']['bot_token']
+        chat_id = settings['telegram']['chat_id']
+    elif notification_service == 'discord':
+        webhook_url = settings['discord']['webhook_url']
+    else:
+        raise ValueError("Invalid notification_service. Please use 'telegram' or 'discord'")
     event_handler = LogFileHandler()
     observer = Observer()
     observer.schedule(event_handler, path=log_path, recursive=False)
@@ -60,6 +87,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         observer.stop()
     except Exception as e:
-        event_handler.send_notification(f"Script has crashed with error: {str(e)}")
+        send_notification(f"Script has crashed with error: {str(e)}")
         observer.stop()
     observer.join()

@@ -1,6 +1,12 @@
 {
   "log_path": "/path/to/foundrydata/Logs/",
   "log_filename": "debug.log",
-  "chat_id": "123456",
-  "bot_token": "123:XYZ"
+  "notification_service": "telegram",
+  "telegram":{
+    "chat_id": "123456",
+    "bot_token": "123:XYZ"
+  },
+  "discord": {
+    "webhook_url": "https://discordapp.com/api/webhooks/123/XYZ"
+  }
 }
