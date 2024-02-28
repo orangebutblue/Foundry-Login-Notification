@@ -1,4 +1,7 @@
+import atexit
 import json
+import signal
+import sys
 import time
 
 import requests
@@ -6,30 +9,41 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 notification_message = "User logged in: "
-settings_filename = "settings.json"
+settings_filename = "settingsme.json"
 
 
-def send_discord_notification(user):
-    text = notification_message + user
+def send_discord_notification(message, user):
+    text = message + user
     data = {
         "content": text
     }
     response = requests.post(webhook_url, data=json.dumps(data), headers={"Content-Type": "application/json"})
-    return response.json()
+    if response.text:  # Check if the response contains any data
+        try:
+            print(response.json())
+            return response.json()
+        except json.JSONDecodeError:
+            print("The response does not contain valid JSON data.")
+            return None
+    else:
+        return None
 
 
-def send_telegram_notification(user):
-    text = notification_message + user
+def send_telegram_notification(message, user):
+    text = message + user
     send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&parse_mode=Markdown&text={text}'
     response = requests.get(send_text)
     return response.json()
 
 
-def send_notification(user):
-    if notification_service == 'telegram':
-        send_telegram_notification(user)
-    elif notification_service == 'discord':
-        send_discord_notification(user)
+def send_notification(message, user):
+    if user not in ignore_list:
+        if notification_service == 'telegram':
+            send_telegram_notification(message, user)
+        elif notification_service == 'discord':
+            send_discord_notification(message, user)
+    else:
+        print(f"Ignore list User logged in: {user}. Not sending notification.")
 
 
 class LogFileHandler(FileSystemEventHandler):
@@ -59,8 +73,16 @@ class LogFileHandler(FileSystemEventHandler):
                 message = log_entry.get('message', '')
                 if "User authentication successful for user" in message:
                     user = message.split("User authentication successful for user")[-1].strip()
-                    print(f"User authentication successful for user: {user}")
-                    send_notification(user)
+                    send_notification(notification_message, user)
+
+
+def shutdown_notification():
+    send_notification("Script is now shutting down", "")
+
+
+def signal_handler(sig, frame):
+    shutdown_notification()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
@@ -76,11 +98,15 @@ if __name__ == "__main__":
         webhook_url = settings['discord']['webhook_url']
     else:
         raise ValueError("Invalid notification_service. Please use 'telegram' or 'discord'")
+    if settings['ignore_users']:
+        ignore_list = settings['ignore_users']
+    signal.signal(signal.SIGTERM, signal_handler)
+    atexit.register(shutdown_notification)
     event_handler = LogFileHandler()
     observer = Observer()
     observer.schedule(event_handler, path=log_path, recursive=False)
     observer.start()
-
+    send_notification("Script has started", "")
     try:
         while True:
             time.sleep(1)

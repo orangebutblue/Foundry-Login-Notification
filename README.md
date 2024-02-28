@@ -8,7 +8,7 @@ This is a simple watchdog for Foundry VTT. It will monitor the Foundry VTT log f
   * python3 packages:
     * requests
     * watchdog
-!
+
  ### 2. Modify the settings.json
 * Modify `log_path` and `log_filename`
 * Set `notification_service` either to `telegram` or `discord`

@@ -8,5 +8,8 @@
   },
   "discord": {
     "webhook_url": "https://discordapp.com/api/webhooks/123/XYZ"
-  }
+  },
+  "ignore_users": ["Gamemaster"]
+
+
 }
