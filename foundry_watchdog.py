@@ -55,8 +55,8 @@ class LogFileHandler(FileSystemEventHandler):
         try:
             if event.src_path == log_path + log_filename:
                 self.process(event)
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        except Exception as e_modified:
+            print(f"An error occurred: {e_modified}")
 
     def process(self, event):
         with open(event.src_path, "r") as file:
@@ -113,6 +113,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         observer.stop()
     except Exception as e:
-        send_notification(f"Script has crashed with error: {str(e)}")
+        send_notification("Script has crashed with error:" + str(e), "")
         observer.stop()
     observer.join()
