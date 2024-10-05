@@ -53,7 +53,7 @@ class LogFileHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         try:
-            if event.src_path == log_path + log_filename:
+            if event.src_path.startswith(log_path) and event.src_path.endswith('.log'):
                 self.process(event)
         except Exception as e_modified:
             print(f"An error occurred: {e_modified}")
