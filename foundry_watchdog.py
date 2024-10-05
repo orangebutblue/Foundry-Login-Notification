@@ -72,7 +72,7 @@ class LogFileHandler(FileSystemEventHandler):
                 log_entry = json.loads(line)
                 message = log_entry.get('message', '')
                 if "User authentication successful for user" in message:
-                    user = message.split("User authentication successful for user")[-1].strip()
+                    user = message.split("User authentication successful for user")[1].split()[0]
                     send_notification(notification_message, user)
 
 
